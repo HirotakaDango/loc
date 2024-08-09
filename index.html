@@ -21,8 +21,14 @@
         <label for="repoUrl">Repository URL:</label>
         <input type="text" id="repoUrl" class="form-control mt-2" placeholder="Enter repository URL">
       </div>
-      <button id="fetchButton" class="btn btn-primary w-100 mt-3">Fetch Data</button>
-
+      <div class="mt-3">
+        <label for="branchName">Branch Name:</label>
+        <input type="text" id="branchName" class="form-control mt-2" placeholder="Enter branch name" value="main">
+      </div>
+      <div class="btn-group gap-3 w-100 mt-3">
+        <button id="installButton" class="btn btn-secondary w-50 rounded">Install Repo</button>
+        <button id="fetchButton" class="btn btn-primary w-50 rounded">Fetch Data</button>
+      </div>
       <div id="results" class="mt-3 p-3 bg-body-tertiary small rounded overflow-auto" style="font-family: monospace; white-space: pre;"></div>
     </div>
 
@@ -30,11 +36,12 @@
       document.getElementById('fetchButton').addEventListener('click', function() {
         const repoType = document.getElementById('repoType').value;
         const repoUrl = document.getElementById('repoUrl').value;
+        const branchName = document.getElementById('branchName').value || 'main'; // Default to 'main' if no branch name is provided
         const resultsDiv = document.getElementById('results');
 
         if (repoUrl) {
           resultsDiv.textContent = 'Fetching data...';
-          fetch(`https://api.codetabs.com/v1/loc/?${repoType}=${repoUrl}`)
+          fetch(`https://api.codetabs.com/v1/loc/?${repoType}=${repoUrl}&branch=${branchName}`)
             .then(response => response.json())
             .then(data => {
               let output = 'Lines of Code by Language:\n\n\n';
@@ -59,6 +66,23 @@
             });
         } else {
           resultsDiv.textContent = 'Please enter a repository URL';
+        }
+      });
+
+      document.getElementById('installButton').addEventListener('click', function() {
+        const repoType = document.getElementById('repoType').value;
+        const repoUrl = document.getElementById('repoUrl').value;
+        const branchName = document.getElementById('branchName').value || 'main';
+
+        if (repoUrl) {
+          const baseUrl = repoType === 'github' ? 'https://github.com/' : 'https://gitlab.com/';
+          const repoPath = repoUrl.startsWith('/') ? repoUrl.slice(1) : repoUrl; // Fix for URLs starting with '/'
+          const installUrl = repoType === 'github'
+            ? `${baseUrl}${repoPath}/archive/refs/heads/${branchName}.zip`
+            : `${baseUrl}${repoPath}/repository/archive.zip?ref=${branchName}`;
+          window.open(installUrl, '_blank');
+        } else {
+          alert('Please enter a repository URL');
         }
       });
     </script>
